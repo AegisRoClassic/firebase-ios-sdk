@@ -283,6 +283,7 @@ const NSTimeInterval kDatabaseLoadTimeoutSecs = 30.0;
     [self handleUpdateStateForConfigNamespace:currentNamespace
                                   withEntries:response[RCNFetchResponseKeyEntries]];
     [self handleUpdatePersonalization:response[RCNFetchResponseKeyPersonalizationMetadata]];
+    [self handleUpdateRollout:response[RCNFetchResponseKeyRolloutMetadata]];
     return;
   }
 }
@@ -291,6 +292,11 @@ const NSTimeInterval kDatabaseLoadTimeoutSecs = 30.0;
   _activePersonalization = _fetchedPersonalization;
   [_DBManager insertOrUpdatePersonalizationConfig:_activePersonalization
                                        fromSource:RCNDBSourceActive];
+}
+
+- (void)activateRollout {
+    _activeRollout = _fetchedRollout;
+    [_DBManager insertOrUpdateRolloutTableWithKey:@RCNRolloutTableKeyActiveMetadata value:_activeRollout completionHandler:nil];
 }
 
 #pragma mark State handling
@@ -356,6 +362,16 @@ const NSTimeInterval kDatabaseLoadTimeoutSecs = 30.0;
   [_DBManager insertOrUpdatePersonalizationConfig:metadata fromSource:RCNDBSourceFetched];
 }
 
+- (void)handleUpdateRollout:(NSArray *)metadata {
+  if (!metadata) {
+    return;
+  }
+  _fetchedRollout = metadata;
+  [_DBManager insertOrUpdateRolloutTableWithKey:@RCNRolloutTableKeyFetchedMetadata
+                                          value:metadata
+                              completionHandler:nil];
+}
+
 #pragma mark - getter/setter
 - (NSDictionary *)fetchedConfig {
   /// If this is the first time reading the fetchedConfig, we might still be reading it from the
@@ -389,7 +405,8 @@ const NSTimeInterval kDatabaseLoadTimeoutSecs = 30.0;
   [self checkAndWaitForInitialDatabaseLoad];
   return @{
     RCNFetchResponseKeyEntries : _activeConfig[FIRNamespace],
-    RCNFetchResponseKeyPersonalizationMetadata : _activePersonalization
+    RCNFetchResponseKeyPersonalizationMetadata : _activePersonalization,
+    RCNFetchResponseKeyRolloutMetadata : _activeRollout
   };
 }
 

@@ -62,6 +62,9 @@ typedef NS_ENUM(NSInteger, RCNDBSource) {
 /// Sets the fetched Personalization metadata to active.
 - (void)activatePersonalization;
 
+/// Sets the fetched Rollout metadata to active.
+- (void)activateRollout;
+
 /// Gets the active config and Personalization metadata.
 - (NSDictionary *)getConfigAndMetadataForNamespace:(NSString *)FIRNamespace;
 
